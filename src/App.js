@@ -8,6 +8,9 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 const host = "http://47.112.121.228:8000";
 
@@ -20,6 +23,11 @@ const net = {
   },
   getAll: async () => {
     let res = await fetch(`${host}/getall`);
+    res = await res.json();
+    return res;
+  },
+  getByName: async (name) => {
+    let res = await fetch(`${host}/records/${name}`);
     res = await res.json();
     return res;
   },
@@ -84,7 +92,21 @@ const Loading = (props) => {
   );
 };
 
+const getBetweenDate = (start, end) => {
+  let res = [];
+  let currentTimeStamp = start.getTime();
+  while (currentTimeStamp <= end.getTime()) {
+    let currentTime = new Date(currentTimeStamp);
+    let month = (currentTime.getMonth() + 1).toString().padStart(2, "0");
+    let day = currentTime.getDate().toString().padStart(2, "0");
+    res.push(`${month}-${day}`);
+    currentTimeStamp += 24 * 60 * 60 * 1000;
+  }
+  return res;
+};
+
 // TODO: 加登录验证
+// TODO: 目前所有查询都是查询所有记录，后续需要改成查询指定记录，把工作放在后端
 
 export default function Admin() {
   const [records, setRecords] = useState([]);
@@ -95,6 +117,9 @@ export default function Admin() {
   const [scaleIDs, setScaleIDs] = useState(null);
   const [inputScaleIDs, setInputScaleIDs] = useState("");
   const [loading, setLoading] = useState(false);
+  const [queryStudent, setQueryStudent] = useState("");
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
 
   return (
     <Box
@@ -159,10 +184,80 @@ export default function Admin() {
         >
           获取所有记录
         </Button>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DesktopDatePicker
+            label="起始日期"
+            inputFormat="yyyy/MM/dd"
+            value={startDate}
+            onChange={(e) => {
+              if (e > endDate) {
+                alert("起始日期不能大于结束日期");
+                return;
+              }
+              setStartDate(e);
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+          <DesktopDatePicker
+            label="结束日期"
+            inputFormat="yyyy/MM/dd"
+            value={endDate}
+            onChange={(e) => {
+              if (e < startDate) {
+                alert("结束日期不能小于起始日期");
+                return;
+              }
+              setEndDate(e);
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+        </LocalizationProvider>
         <Button
           variant="contained"
           onClick={async () => {
-            let exportDate = ["06-11", "06-12", "06-13", "06-14"];
+            let students = {};
+            let res = await net.getAll();
+            const empty = "尚未填写";
+            for (let record of res) {
+              if (!(record.name in students)) {
+                students[record.name] = {
+                  name: record.name,
+                  class: record["class_id"],
+                  grade: record.grade,
+                  school: record.school,
+                };
+              } else {
+                if (record["class_id"] === empty) {
+                  students[record.name]["class"] = record["class_id"];
+                }
+                if (record.grade === empty) {
+                  students[record.name]["grade"] = record.grade;
+                }
+                if (record.school === empty) {
+                  students[record.name]["school"] = record.school;
+                }
+              }
+            }
+            console.log(students);
+            let ans = "";
+            for (let student in students) {
+              ans += `${students[student].school}\t${students[student].grade}\t${students[student].class}班\t${students[student].name}\n`;
+            }
+            const element = document.createElement("a");
+            const file = new Blob([ans], { type: "text/plain" });
+            element.href = URL.createObjectURL(file);
+            element.download = "花名册.txt";
+            document.body.appendChild(element);
+            element.click();
+          }}
+        >
+          导出花名册
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={async () => {
+            let exportDate = getBetweenDate(startDate, endDate);
             let students = {};
             for (let date of exportDate) {
               students[date] = [];
@@ -194,7 +289,35 @@ export default function Admin() {
             element.click();
           }}
         >
-          导出所有被测人名单
+          导出日期内被测人名单
+        </Button>
+        <TextField
+          id="outlined-basic"
+          label="学生姓名"
+          variant="outlined"
+          onChange={(e) => {
+            setQueryStudent(e.target.value);
+          }}
+          value={queryStudent}
+        />
+        <Button
+          variant="contained"
+          onClick={async () => {
+            setLoading(true);
+            let res = await net.getByName(queryStudent);
+            let dates = [];
+            for (let record of res) {
+              const date = record.time.split("####")[0].split(" ")[0];
+              if (dates.indexOf(date) === -1) {
+                dates.push(date);
+              }
+            }
+            console.log(dates);
+            alert(`${queryStudent}已填写${dates.length}天`);
+            setLoading(false);
+          }}
+        >
+          查询某位学生的参与天数
         </Button>
         {/* <Button
           variant="contained"
