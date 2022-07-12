@@ -16,6 +16,7 @@ import Net from "./Net";
 import { Overview } from "./components/Overview";
 import { getAll } from "./utils";
 import { BuildDialogue } from "./components/BuildDialogue";
+import { InformationQuery } from "./components/InformationQuery";
 
 const columns = [
   { field: "id", headerName: "顺序", width: 80, editable: false },
@@ -80,7 +81,11 @@ const getBetweenDate = (start, end) => {
 
 const mainParts = [
   { text: "信息概览", content: <Overview />, icon: <BarChartOutlinedIcon /> },
-  { text: "信息查询", content: <div>2</div>, icon: <InfoOutlinedIcon /> },
+  {
+    text: "信息查询",
+    content: <InformationQuery />,
+    icon: <InfoOutlinedIcon />,
+  },
   {
     text: "对话复现",
     content: <BuildDialogue />,
@@ -118,7 +123,6 @@ export default function Root() {
 //     items: [],
 //   });
 //   const [inputScaleIDs, setInputScaleIDs] = useState("");
-//   const [queryStudent, setQueryStudent] = useState("");
 
 //   return (
 //     <Box
@@ -241,34 +245,7 @@ export default function Root() {
 //         >
 //           导出日期内被测人名单
 //         </Button>
-//         <TextField
-//           id="outlined-basic"
-//           label="学生姓名"
-//           variant="outlined"
-//           onChange={(e) => {
-//             setQueryStudent(e.target.value);
-//           }}
-//           value={queryStudent}
-//         />
-//         <Button
-//           variant="contained"
-//           onClick={async () => {
-//             setLoading(true);
-//             let res = await net.getByName(queryStudent);
-//             let dates = [];
-//             for (let record of res) {
-//               const date = record.time.split("####")[0].split(" ")[0];
-//               if (dates.indexOf(date) === -1) {
-//                 dates.push(date);
-//               }
-//             }
-//             console.log(dates);
-//             alert(`${queryStudent}已填写${dates.length}天`);
-//             setLoading(false);
-//           }}
-//         >
-//           查询某位学生的参与天数
-//         </Button>
+
 //         {/* <Button
 //           variant="contained"
 //           color="error"

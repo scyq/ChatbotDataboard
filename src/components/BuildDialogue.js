@@ -1,6 +1,5 @@
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
-import Button from "@mui/material/Button";
 import { useState } from "react";
 import { scaleIDState, recordState } from "../States";
 import { useRecoilValue } from "recoil";
