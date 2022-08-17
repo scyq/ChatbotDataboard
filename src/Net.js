@@ -1,4 +1,5 @@
-const host = "http://47.112.121.228:8000";
+// const host = "http://47.112.121.228:8000";
+const host = "http://thupsy.tech:8000";
 
 // TODO: 加登录验证
 // TODO: 目前所有查询都是查询所有记录，后续需要改成查询指定记录，把工作放在后端

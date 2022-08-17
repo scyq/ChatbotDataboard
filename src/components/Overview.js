@@ -29,12 +29,17 @@ function Line(props) {
 
 function getRow(records, scaleID) {
   let temp = [];
+  let date = null;
   for (let record of records) {
     if (record.scale_id === scaleID) {
+      if (!date) {
+        date = record.time.split("####")[0].split(" ")[0];
+      }
       temp.push(`Q: ${record.question}`);
       temp.push(`A: ${record.answer}`);
     }
   }
+  temp = [date, ...temp];
   return temp;
 }
 
